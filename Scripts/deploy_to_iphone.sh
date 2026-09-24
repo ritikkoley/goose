@@ -32,11 +32,16 @@ if [[ -z "${DEVICE:-}" ]]; then
   DEVICE="$(/usr/bin/python3 - "$devices_json" <<'PY'
 import json, sys
 devices = json.load(open(sys.argv[1])).get("result", {}).get("devices", [])
-for d in devices:
-    hw = d.get("hardwareProperties", {})
-    if hw.get("platform") == "iOS" and hw.get("deviceType") == "iPhone" and hw.get("udid"):
-        print(hw["udid"])
-        break
+iphones = [
+    d for d in devices
+    if d.get("hardwareProperties", {}).get("platform") == "iOS"
+    and d.get("hardwareProperties", {}).get("deviceType", "iPhone") == "iPhone"
+    and d.get("hardwareProperties", {}).get("udid")
+]
+# Prefer phones that are reachable now over stale pairings.
+iphones.sort(key=lambda d: d.get("connectionProperties", {}).get("tunnelState") == "unavailable")
+if iphones:
+    print(iphones[0]["hardwareProperties"]["udid"])
 PY
 )"
   if [[ -z "$DEVICE" ]]; then
