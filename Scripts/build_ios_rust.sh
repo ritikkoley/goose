@@ -11,6 +11,15 @@ if [[ "${GOOSE_SKIP_RUST_CORE_BUILD:-0}" == "1" ]]; then
   exit 0
 fi
 
+# Xcode build phases run with a minimal PATH that usually omits rustup's
+# ~/.cargo/bin and Homebrew, so add the common install locations.
+export PATH="${CARGO_HOME:-$HOME/.cargo}/bin:/opt/homebrew/bin:/usr/local/bin:$PATH"
+
+if ! command -v cargo >/dev/null 2>&1; then
+  echo "error: cargo not found. Install Rust with rustup (https://rustup.rs), then run Scripts/setup_mac.sh." >&2
+  exit 1
+fi
+
 CONFIGURATION="${CONFIGURATION:-Debug}"
 PLATFORM_NAME="${PLATFORM_NAME:-iphonesimulator}"
 CURRENT_ARCH="${CURRENT_ARCH:-${ARCHS:-arm64}}"
@@ -81,6 +90,12 @@ if [[ -f "$PLATFORM_OUTPUT_LIB" && -f "$PLATFORM_TARGET_FILE" && -f "$PLATFORM_P
     echo "Goose Rust iOS library already current for $RUST_TARGET ($CARGO_PROFILE_DIR)"
     exit 0
   fi
+fi
+
+if command -v rustup >/dev/null 2>&1 \
+  && ! rustup target list --installed | grep -qx "$RUST_TARGET"; then
+  echo "error: Rust target $RUST_TARGET is not installed. Run: rustup target add $RUST_TARGET" >&2
+  exit 1
 fi
 
 SDK_PATH="$(xcrun --sdk "$SDK_NAME" --show-sdk-path)"

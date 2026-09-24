@@ -1,0 +1,8 @@
+// Copy to Config/Local.xcconfig (gitignored) and fill in your values.
+//
+// Find your Team ID in Xcode > Settings > Accounts > (your Apple ID) >
+// the team row, or at https://developer.apple.com/account under Membership.
+// A free "Personal Team" works for installing on your own iPhone.
+
+DEVELOPMENT_TEAM = ABCDE12345
+GOOSE_BUNDLE_ID = com.yourname.goose

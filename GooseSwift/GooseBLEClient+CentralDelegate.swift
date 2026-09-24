@@ -110,6 +110,22 @@ extension GooseBLEClient: CBCentralManagerDelegate {
       return
     }
 
+    handleWhoopDiscovery(
+      peripheral,
+      advertisedName: advertisedName,
+      advertisedServices: advertisedServices,
+      rssi: RSSI.intValue,
+      evidence: evidence
+    )
+  }
+
+  func handleWhoopDiscovery(
+    _ peripheral: CBPeripheral,
+    advertisedName: String?,
+    advertisedServices: [CBUUID],
+    rssi: Int,
+    evidence: String
+  ) {
     whoopCandidateIDs.insert(peripheral.identifier)
     peripherals[peripheral.identifier] = peripheral
     let name = Self.sanitizedWhoopDisplayName(peripheral.name ?? advertisedName ?? "WHOOP strap")
@@ -119,7 +135,7 @@ extension GooseBLEClient: CBCentralManagerDelegate {
     let device = GooseDiscoveredDevice(
       id: peripheral.identifier,
       name: name,
-      rssi: RSSI.intValue
+      rssi: rssi
     )
 
     discoveredDevices.removeAll { $0.id == device.id }

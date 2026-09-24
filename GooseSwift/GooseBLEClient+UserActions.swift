@@ -136,6 +136,25 @@ extension GooseBLEClient {
       options: [CBCentralManagerScanOptionAllowDuplicatesKey: false]
     )
     record(source: "ble", title: "scan.started", body: "reason=\(reason) services=\(uuidList(whoopServices))")
+    surfaceSystemConnectedWhoops(central, reason: reason)
+  }
+
+  /// A strap already connected to iOS (for example by the official WHOOP app)
+  /// usually stops advertising, so scanning alone never finds it. Ask
+  /// CoreBluetooth for connected peripherals exposing a WHOOP service and feed
+  /// them through the same discovery path as scan results.
+  func surfaceSystemConnectedWhoops(_ central: CBCentralManager, reason: String) {
+    let connected = central.retrieveConnectedPeripherals(withServices: whoopServices)
+    for peripheral in connected where peripheral.identifier != activePeripheral?.identifier {
+      record(source: "ble", title: "scan.system_connected", body: "reason=\(reason) \(peripheral.identifier.uuidString)")
+      handleWhoopDiscovery(
+        peripheral,
+        advertisedName: nil,
+        advertisedServices: [],
+        rssi: 0,
+        evidence: "system-connected WHOOP service"
+      )
+    }
   }
 
   func stopScan(reason: String) {

@@ -1,0 +1,16 @@
+// Shared build settings for every Goose target.
+//
+// Do not put your personal Apple Developer Team ID here. Copy
+// Local.xcconfig.example to Local.xcconfig (gitignored) and set it there,
+// or run Scripts/setup_mac.sh which does it for you.
+
+// Base bundle identifier. The Live Activity extension appends
+// ".WorkoutLiveActivityExtension". Bundle IDs are globally unique per Apple
+// team, so override this in Local.xcconfig with something you own.
+GOOSE_BUNDLE_ID = com.goose.swift
+
+// Apple Developer Team ID used for automatic signing. Empty means "pick a team
+// in Xcode > Signing & Capabilities".
+DEVELOPMENT_TEAM =
+
+#include? "Local.xcconfig"

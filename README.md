@@ -61,13 +61,24 @@ The current health metric UI draws heavily from [Bevel](https://www.bevel.health
 
 - macOS with Xcode installed.
 - iOS 26 SDK and an iOS 26 capable simulator/device.
-- Apple Developer signing configured for the `com.goose.swift` bundle identifier.
+- Apple Developer signing. Set your team and a bundle identifier you own in `Config/Local.xcconfig`.
 - Rust and Cargo for building the Goose Rust core from the committed `Rust/core` source.
 - iOS Rust targets installed with `rustup`; see the Rust Core Bridge section below.
 
 Built Rust `.a` archives are generated locally during Xcode builds and are not committed. Set `GOOSE_SKIP_RUST_CORE_BUILD=1` only when the matching local archive already exists for the active Xcode platform.
 
 ## Build
+
+**New to iOS development?** Follow [docs/DEPLOY_TO_IPHONE.md](docs/DEPLOY_TO_IPHONE.md). In short:
+
+```sh
+Scripts/setup_mac.sh        # once: Rust iOS targets + Config/Local.xcconfig (team ID, bundle ID)
+Scripts/deploy_to_iphone.sh # build, install, and launch on a connected iPhone
+```
+
+Signing settings live in `Config/Goose.xcconfig`, overridden by the gitignored
+`Config/Local.xcconfig`. The architecture is described in
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 Open `GooseSwift.xcodeproj` in Xcode and build the `GooseSwift` scheme, or build from the command line.
 
@@ -109,7 +120,7 @@ After a successful physical-device build, reinstall and launch:
 ```sh
 xcrun devicectl device uninstall app \
   --device <device-id> \
-  com.goose.swift
+  <your GOOSE_BUNDLE_ID>
 
 xcrun devicectl device install app \
   --device <device-id> \
@@ -118,7 +129,7 @@ xcrun devicectl device install app \
 xcrun devicectl device process launch \
   --device <device-id> \
   --terminate-existing \
-  com.goose.swift
+  <your GOOSE_BUNDLE_ID>
 ```
 
 ## Rust Core Bridge
