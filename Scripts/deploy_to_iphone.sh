@@ -4,6 +4,7 @@
 # Usage:
 #   Scripts/deploy_to_iphone.sh              # first paired iPhone found
 #   DEVICE=<udid-or-name> Scripts/deploy_to_iphone.sh
+#   LAUNCH_ARGS="--goose-enable-diagnostics" Scripts/deploy_to_iphone.sh
 #   CONFIGURATION=Release Scripts/deploy_to_iphone.sh
 #   NO_LAUNCH=1 Scripts/deploy_to_iphone.sh  # install without launching
 set -euo pipefail
@@ -51,6 +52,11 @@ PY
   fi
 fi
 echo "Target iPhone: $DEVICE"
+if [[ "$DEVICE" =~ ^[0-9A-Fa-f-]{20,}$ ]]; then
+  destination="platform=iOS,id=$DEVICE"
+else
+  destination="platform=iOS,name=$DEVICE"
+fi
 
 bundle_id="$(sed -n 's/^[[:space:]]*GOOSE_BUNDLE_ID[[:space:]]*=[[:space:]]*//p' "$LOCAL_XCCONFIG" | tail -n1)"
 bundle_id="${bundle_id:-com.goose.swift}"
@@ -60,9 +66,10 @@ xcodebuild \
   -project "$APP_DIR/GooseSwift.xcodeproj" \
   -scheme GooseSwift \
   -configuration "$CONFIGURATION" \
-  -destination "platform=iOS,id=$DEVICE" \
+  -destination "$destination" \
   -derivedDataPath "$DERIVED_DATA" \
   -allowProvisioningUpdates \
+  -allowProvisioningDeviceRegistration \
   build
 
 app_path="$DERIVED_DATA/Build/Products/$CONFIGURATION-iphoneos/GooseSwift.app"
@@ -71,7 +78,8 @@ xcrun devicectl device install app --device "$DEVICE" "$app_path"
 
 if [[ "${NO_LAUNCH:-0}" != "1" ]]; then
   echo "Launching $bundle_id"
-  if ! xcrun devicectl device process launch --device "$DEVICE" --terminate-existing "$bundle_id"; then
+  # shellcheck disable=SC2086 # LAUNCH_ARGS is intentionally word-split into app arguments.
+  if ! xcrun devicectl device process launch --device "$DEVICE" --terminate-existing "$bundle_id" ${LAUNCH_ARGS:-}; then
     echo "Launch failed. With a free Personal Team, trust the developer first on the iPhone:"
     echo "  Settings > General > VPN & Device Management > (your Apple ID) > Trust"
     echo "then open Goose from the home screen."
